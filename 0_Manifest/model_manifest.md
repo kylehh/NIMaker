@@ -9,9 +9,10 @@ or, you can directly access the model manifest file by
 ```
 docker run --rm -it nvcr.io/nim/meta/llama-3.3-70b-instruct:1.5.2 cat /etc/nim/config/model_manifest.yaml
 
-or
-
+#or
 cat /opt/nim/etc/default/model_manifest.yaml
+
+#or a path specified by NIM_MANIFEST_PATH
 ```
 
 Here are the examples of 
