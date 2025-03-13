@@ -127,3 +127,35 @@ Please be aware, directly supply a TensorRT-LLM engine to `NIM_FT_MODEL` are NOT
     raise NotImplementedError(
 NotImplementedError: Only safetensors/pickle/binary directories are supported.
 ```
+
+## 5 Host a merged LoRA model
+We can merge LoRA weight into the base model and host it as a regular model. Here is an example of merging `llama-3.1-nemoguard-8b-content-safety` LoRA adapter with Llama 3.1 8B model.
+```shell
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftModel
+
+# Set your access token
+access_token = "hf_tokens"
+
+# Load base model with authentication
+base_model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-8B-Instruct", use_auth_token=access_token)
+
+# Load LoRA adapter with authentication
+#git clone https://huggingface.co/nvidia/llama-3.1-nemoguard-8b-content-safety
+peft_model_id = "/raid/models/llama-3.1-nemoguard-8b-content-safety/llama-3.1-nemoguard-8b-content-safety-lora-adapter"
+model = PeftModel.from_pretrained(base_model, peft_model_id, use_auth_token=access_token)
+
+# Merge LoRA adapter into base model
+merged_model = model.merge_and_unload(progressbar=True)
+# Save merged model
+merged_model.save_pretrained("/raid/models/llama-3.1-nemoguard-8b-content-safety/merged_model")
+
+# Save tokenizer
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B-Instruct", use_auth_token=access_token)
+tokenizer.save_pretrained("/raid/models/llama-3.1-nemoguard-8b-content-safety/merged_model")
+```
+Now we can host the model (in HuggingFace format) by setting the `NIM_MODEL_NAME` environment variable. 
+```
+-e NIM_MODEL_NAME="/raid/models/llama-3.1-nemoguard-8b-content-safety/merged_model" \
+
+```
