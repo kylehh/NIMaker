@@ -29,11 +29,13 @@ There are two ways of Kubernates deployment
     dynamo build --containerize hello_world:Frontend
     ```
     Try add `DOCKER_BUILDKIT=0` if the `dynamo build` fails. 
-3. Extra Helm values file 
+3. Extract Helm values file 
     - Previous step will generate an images "frontend:tag-values"
-    - Tag the image as 'APP_IMAGE' and push to the docker repo
-    - Extra Helm values from the images
+    - Tag the image as `APP_IMAGE` and push to the docker repo
+    - Extract Helm values from the images
     ```
+    docker tag frontend:tag-values $APP_IMAGE
+    docker push $APP_IMAGE
     dynamo get frontend > pipeline-values.yaml
     ```
 4. Helm Deployment
@@ -52,6 +54,7 @@ There are two ways of Kubernates deployment
         --values etcd-values.yaml
     ```
     - Update `values.yaml` in the chart [folder](https://github.com/ai-dynamo/dynamo/blob/main/deploy/Kubernetes/pipeline/chart/values.yaml). Create `imagePullSecrets` if needed
+    - Update `targetPort` to 8000 for [service](https://github.com/ai-dynamo/dynamo/blob/main/deploy/Kubernetes/pipeline/chart/templates/service.yaml#L26)
     ```
     kubectl create secret docker-registry docker-imagepullsecret \
     --docker-server=<registry-server> \
@@ -131,6 +134,7 @@ There are two ways of Kubernates deployment
     # Create the deployment
     dynamo deployment create $DYNAMO_TAG --no-wait -n $DEPLOYMENT_NAME
     ```
+    It will create a container under `$DOCKER_SERVER/dynamo-pipelines:dynamo.front.xxxx`
     - List and delete deployment
     ```
     dynamo deployment list
@@ -146,4 +150,4 @@ There are two ways of Kubernates deployment
         -H 'accept: text/event-stream' \
         -H 'Content-Type: application/json' \
         -d '{"text": "test"}'
-    ```
+    ```q
